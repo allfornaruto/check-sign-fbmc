@@ -19,6 +19,6 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     filename: 'main.js',
     library: 'check-sign-fbmc',
-    libraryTarget: 'umd'
+    libraryTarget: 'commonjs2'
   }
 };
