@@ -8,8 +8,9 @@
     "build": "webpack --config webpack.config.js",
     "test": "jest --detectOpenHandles --coverage --runInBand --forceExit"
   },
-  "keywords": [],
-  "author": "",
+  "repository": "https://github.com/allfornaruto/check-sign-fbmc",
+  "keywords": ["Hmac-MD5", "RSA-SHA256", "Sign"],
+  "author": "allfornaruto",
   "license": "ISC",
   "sideEffects": false,
   "devDependencies": {
