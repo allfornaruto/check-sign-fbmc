@@ -1,21 +1,16 @@
 import hex from "crypto-js/enc-hex";
 import hmacMd5 from "crypto-js/hmac-md5";
-import nodeRSA from "node-rsa";
 
 interface Option {
 	debug: boolean;
 }
 
 class CheckSignFbmcClient {
-	private readonly clientPrivatePem: string;
-	private readonly serverPublicPem: string;
 	private readonly secret: string;
 	private readonly debug: boolean;
 
-	constructor(secret: string, clientPrivatePem: string, serverPublicPem: string, option?: Option) {
+	constructor(secret: string, option?: Option) {
 		this.secret = secret;
-		this.clientPrivatePem = clientPrivatePem;
-		this.serverPublicPem = serverPublicPem;
 		if (option && option.debug) this.debug = option.debug;
 	}
 
@@ -24,12 +19,6 @@ class CheckSignFbmcClient {
 		const digest = hex.stringify(hmacMd5(content, this.secret));
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
-	}
-
-	// 客户端通过客户端私钥来对Hmac消息摘要生成签名
-	private clientEncryptSign(hmacStr) {
-		const key = new nodeRSA(this.clientPrivatePem);
-		return key.sign(hmacStr, "base64");
 	}
 
 	// 客户端通过服务端公钥来对Hmac消息摘要进行验签
@@ -43,10 +32,7 @@ class CheckSignFbmcClient {
 		const resDataWithoutSignJSON = JSON.stringify(resDataWithoutSign);
 		// 生成响应摘要
 		const serverDataHmac = this.createHmac(resDataWithoutSignJSON);
-
-		const key = new nodeRSA(this.serverPublicPem);
-		const result = key.verify(Buffer.from(serverDataHmac), serverDataSign, "utf8", "base64");
-
+		const result = serverDataSign === serverDataHmac;
 		if (this.debug) console.log(`客户端验签:${result}`);
 		return result;
 	}
@@ -57,24 +43,17 @@ class CheckSignFbmcClient {
 		const requestBodyJSON = JSON.stringify(request);
 		// 生成请求消息摘要
 		const clientHmac = this.createHmac(requestBodyJSON);
-		// 生成摘要签名PKCS1
-		const clientSignPKCS1 = this.clientEncryptSign(clientHmac);
-		// 把签名挂在请求对象的sign属性上
-		request.sign = clientSignPKCS1;
+		request.sign = clientHmac;
 		return request;
 	}
 }
 
 class CheckSignFbmcServer {
-	private readonly serverPrivatePem: string;
-	private readonly clientPublicPem: string;
 	private readonly secret: string;
 	private readonly debug: boolean;
 
-	constructor(secret: string, serverPrivatePem: string, clientPublicPem: string, option?: Option) {
+	constructor(secret: string, option?: Option) {
 		this.secret = secret;
-		this.serverPrivatePem = serverPrivatePem;
-		this.clientPublicPem = clientPublicPem;
 		if (option && option.debug) this.debug = option.debug;
 	}
 
@@ -83,12 +62,6 @@ class CheckSignFbmcServer {
 		const digest = hex.stringify(hmacMd5(content, this.secret));
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
-	}
-
-	// 服务端通过服务端私钥来对Hmac消息摘要生成签名
-	private serverEncryptSign(hmacStr) {
-		const key = new nodeRSA(this.serverPrivatePem);
-		return key.sign(hmacStr, "base64");
 	}
 
 	// 服务端通过客户端公钥来对Hmac消息摘要进行验签
@@ -103,10 +76,7 @@ class CheckSignFbmcServer {
 		const resDataWithoutSignJSON = JSON.stringify(resDataWithoutSign);
 		// 生成响应摘要
 		const clientDataHmac = this.createHmac(resDataWithoutSignJSON);
-
-		const key = new nodeRSA(this.clientPublicPem);
-		const result = key.verify(Buffer.from(clientDataHmac), serverDataSign, "utf8", "base64");
-
+		const result = serverDataSign === clientDataHmac;
 		if (this.debug) console.log(`服务端验签:${result}`);
 		return result;
 	}
@@ -117,10 +87,8 @@ class CheckSignFbmcServer {
 		const resposneBodyJSON = JSON.stringify(resposne);
 		// 生成请求消息摘要
 		const clientHmac = this.createHmac(resposneBodyJSON);
-		// 生成摘要签名PKCS1
-		const clientSignPKCS1 = this.serverEncryptSign(clientHmac);
 		// 把签名挂在请求对象的sign属性上
-		resposne.sign = clientSignPKCS1;
+		resposne.sign = clientHmac;
 		return resposne;
 	}
 }
