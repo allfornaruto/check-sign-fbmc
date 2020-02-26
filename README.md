@@ -5,9 +5,12 @@
 ## 客户端使用方法
 
 ```javascript
+import { CheckSignFbmcClient } from "check-sign-fbmc-light";
+
 (async function(){
 	const secret = `123456`;
 	const client = new CheckSignFbmcClient(secret, { debug: true });
+	const request = { a: "1" };
 	const requestWithSign = client.addSignToRequest(request);
 	const responseWithSign = await axios.post("/api", requestWithSign);
 
@@ -18,6 +21,8 @@
 ## 服务端使用方法
 
 ```javascript
+import { CheckSignFbmcServer } from "check-sign-fbmc-light";
+
 (async function(requestWithSign){
 	const secret = `123456`;
 	const server = new CheckSignFbmcServer(secret, { debug: true });
