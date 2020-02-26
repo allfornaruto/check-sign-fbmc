@@ -1,4 +1,6 @@
-import { createHmac, createSign, createVerify } from "crypto";
+import hex from "crypto-js/enc-hex";
+import hmacMd5 from "crypto-js/hmac-md5";
+import nodeRSA from "node-rsa";
 
 interface Option {
 	debug: boolean;
@@ -19,29 +21,15 @@ class CheckSignFbmcClient {
 
 	// 创建Hmac消息摘要
 	private createHmac(content) {
-		// 创建摘要的算法
-		const algorithm = "md5";
-		// 创建 hmac 实例
-		const hmac = createHmac(algorithm, this.secret);
-		// 使用 update 方法更新加密数据
-		hmac.update(content);
-		// 使用 digest 方法生成加密数据
-		const digest = hmac.digest("hex");
+		const digest = hex.stringify(hmacMd5(content, this.secret));
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
 	}
 
 	// 客户端通过客户端私钥来对Hmac消息摘要生成签名
 	private clientEncryptSign(hmacStr) {
-		// 签名算法
-		const algorithm = "RSA-SHA256";
-		// 创建签名
-		const sign = createSign(algorithm);
-		// 使用 update 方法更新数据
-		sign.update(hmacStr);
-		// 生成签名 以 hex 格式输入数据
-		const sig = sign.sign(this.clientPrivatePem, "base64");
-		return sig;
+		const key = new nodeRSA(this.clientPrivatePem);
+		return key.sign(hmacStr, "base64");
 	}
 
 	// 客户端通过服务端公钥来对Hmac消息摘要进行验签
@@ -55,14 +43,10 @@ class CheckSignFbmcClient {
 		const resDataWithoutSignJSON = JSON.stringify(resDataWithoutSign);
 		// 生成响应摘要
 		const serverDataHmac = this.createHmac(resDataWithoutSignJSON);
-		// 签名算法
-		const algorithm = "RSA-SHA256";
-		// 验证签名
-		const verify = createVerify(algorithm);
-		// 使用 updata 方法更新数据
-		verify.update(serverDataHmac);
-		// 验证签名的数据是否正确
-		const result = verify.verify(this.serverPublicPem, serverDataSign, "base64");
+
+		const key = new nodeRSA(this.serverPublicPem);
+		const result = key.verify(Buffer.from(serverDataHmac), serverDataSign, "utf8", "base64");
+
 		if (this.debug) console.log(`客户端验签:${result}`);
 		return result;
 	}
@@ -96,29 +80,15 @@ class CheckSignFbmcServer {
 
 	// 创建Hmac消息摘要
 	private createHmac(content) {
-		// 创建摘要的算法
-		const algorithm = "md5";
-		// 创建 hmac 实例
-		const hmac = createHmac(algorithm, this.secret);
-		// 使用 update 方法更新加密数据
-		hmac.update(content);
-		// 使用 digest 方法生成加密数据
-		const digest = hmac.digest("hex");
+		const digest = hex.stringify(hmacMd5(content, this.secret));
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
 	}
 
 	// 服务端通过服务端私钥来对Hmac消息摘要生成签名
 	private serverEncryptSign(hmacStr) {
-		// 签名算法
-		const algorithm = "RSA-SHA256";
-		// 创建签名
-		const sign = createSign(algorithm);
-		// 使用 update 方法更新数据
-		sign.update(hmacStr);
-		// 生成签名 以 hex 格式输入数据
-		const sig = sign.sign(this.serverPrivatePem, "base64");
-		return sig;
+		const key = new nodeRSA(this.serverPrivatePem);
+		return key.sign(hmacStr, "base64");
 	}
 
 	// 服务端通过客户端公钥来对Hmac消息摘要进行验签
@@ -133,14 +103,10 @@ class CheckSignFbmcServer {
 		const resDataWithoutSignJSON = JSON.stringify(resDataWithoutSign);
 		// 生成响应摘要
 		const clientDataHmac = this.createHmac(resDataWithoutSignJSON);
-		// 签名算法
-		const algorithm = "RSA-SHA256";
-		// 验证签名
-		const verify = createVerify(algorithm);
-		// 使用 updata 方法更新数据
-		verify.update(clientDataHmac);
-		// 验证签名的数据是否正确
-		const result = verify.verify(this.clientPublicPem, serverDataSign, "base64");
+
+		const key = new nodeRSA(this.clientPublicPem);
+		const result = key.verify(Buffer.from(clientDataHmac), serverDataSign, "utf8", "base64");
+
 		if (this.debug) console.log(`服务端验签:${result}`);
 		return result;
 	}

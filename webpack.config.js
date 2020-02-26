@@ -20,5 +20,13 @@ module.exports = {
     filename: 'main.js',
     library: 'check-sign-fbmc',
     libraryTarget: 'commonjs2'
+  },
+  externals: {
+    crypto: {
+      commonjs: 'crypto',
+      commonjs2: 'crypto',
+      amd: 'crypto',
+      root: 'crypto'
+    }
   }
 };

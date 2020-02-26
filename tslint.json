@@ -1,6 +1,7 @@
 {
   "extends": ["tslint-config-airbnb"],
   "rules": {
+    "import-name": false,
     "no-consecutive-blank-lines": false,
     "trailing-comma": false,
     "align": [true, "parameters", "statements", "members", "elements"],
