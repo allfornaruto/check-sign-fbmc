@@ -1,6 +1,6 @@
 {
   "name": "check-sign-fbmc",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "check sign use Hmac-MD5 and RSA-SHA256",
   "main": "./build/main.js",
   "typings": "./build/main.d.ts",
