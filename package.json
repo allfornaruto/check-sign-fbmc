@@ -1,6 +1,6 @@
 {
   "name": "check-sign-fbmc-light",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "check sign use Hmac-MD5",
   "main": "./build/main.js",
   "typings": "./build/main.d.ts",
@@ -27,8 +27,5 @@
     "typescript": "^3.7.5",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11"
-  },
-  "dependencies": {
-    "crypto-js": "^4.0.0"
   }
 }

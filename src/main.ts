@@ -1,5 +1,4 @@
-import hex from "crypto-js/enc-hex";
-import hmacMd5 from "crypto-js/hmac-md5";
+import hex_hmac_md5 from "./md5";
 
 interface Option {
 	debug: boolean;
@@ -16,7 +15,7 @@ class CheckSignFbmcClient {
 
 	// 创建Hmac消息摘要
 	private createHmac(content) {
-		const digest = hex.stringify(hmacMd5(content, this.secret));
+		const digest = hex_hmac_md5(this.secret, content);
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
 	}
@@ -59,7 +58,7 @@ class CheckSignFbmcServer {
 
 	// 创建Hmac消息摘要
 	private createHmac(content) {
-		const digest = hex.stringify(hmacMd5(content, this.secret));
+		const digest = hex_hmac_md5(this.secret, content);
 		if (this.debug) console.log(`${content}对应的Hmac-MD5摘要是${digest}`);
 		return digest;
 	}
